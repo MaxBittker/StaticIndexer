@@ -21,4 +21,5 @@ This file is run one time to generate your static index! it does not get include
             }
         });
     });
-});```
+});
+```
