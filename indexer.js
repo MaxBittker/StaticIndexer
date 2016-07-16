@@ -9,6 +9,22 @@ fs.writeFile('tipuesearch_content.js', 'var tipuesearch = {"pages": [\n', functi
     console.log('Cleared:');
 });
 
+function cleanup(str, stripCommas = 0) {
+    if (str == undefined) {
+        str = "";
+    } else {
+        if (stripCommas == 1) {
+            str = str.replace(/,/g, ' ');           // Replace all commas with spaces.
+        }
+        if (stripCommas == 2) {                     // Replace all punctuation with spaces.
+            body = body.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/, ' ');
+        }
+        str = $('<textarea />').html(str).text(); // Unescape html entities.
+        str = str.replace(/\s\s+/g, ' ');           // Replace tabs, newlines and multiple spaces with 1 space.
+    }
+    return str;
+}
+
 fs.readdir(dir, function(err, files) {
     if (err) throw err;
     var c = 0;
@@ -24,19 +40,21 @@ fs.readdir(dir, function(err, files) {
                     if (err) throw err;
                     $ = cheerio.load(data);
 
-
-                    body = $('h1,h2,p').map(function(i, el) {
+                    var body = $('h1,h2,p,table,div').map(function(i, el) {
                         return $(this).text();
                     }).get().join(' ');
+                    body = cleanup(body);
 
-
-                    title = $('title').text();
-                   
+                    var title = $('title').text();
+                    title = cleanup(title);
+                                        
+                    var tags = $('meta[name="keywords"]').attr('content');
+                    tags = cleanup(tags, 1);
 
                     fs.appendFile('tipuesearch_content.js', JSON.stringify({
                         title: title,
                         text: body,
-                        tags: "",
+                        tags: tags,
                         url: file
                     }) + ',\n', function(err) {
                         if (err) throw err;
